@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Shooting Optimizer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #111;
+      color: #eee;
+    }
+    h1, h2 {
+      color: #6cf;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input, select, textarea, button {
+      margin-top: 5px;
+      padding: 6px;
+      font-size: 14px;
+    }
+    .section {
+      margin: 20px 0;
+      padding: 15px;
+      border: 1px solid #444;
+      border-radius: 6px;
+      background: #1a1a1a;
+    }
+    pre {
+      white-space: pre-wrap;
+      background: #222;
+      padding: 10px;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🏀 Shooting Optimizer App</h1>
+  <p>Input your current state → get instant analysis, fixes, and development plan. Expandable with your own rules & drills.</p>
+
+  <div class="section">
+    <h2>Input</h2>
+    <label>Archetype:
+      <select id="archetype">
+        <option value="quick_guard">Quick Guard</option>
+        <option value="power_forward">Power Forward</option>
+        <option value="shooter">Shooter</option>
+        <option value="all_around">All-Around</option>
+      </select>
+    </label>
+
+    <label>Weakness:
+      <select id="weakness">
+        <option value="inconsistent_release">Inconsistent Release</option>
+        <option value="flat_shot">Flat Shot</option>
+        <option value="short_range">Short Shots</option>
+        <option value="off_balance">Off Balance</option>
+      </select>
+    </label>
+
+    <label>Shot Type:
+      <select id="shot_type">
+        <option value="stepback">Step-Back</option>
+        <option value="catch_shoot">Catch-and-Shoot</option>
+        <option value="pullup">Pull-Up</option>
+        <option value="fadeaway">Fadeaway</option>
+      </select>
+    </label>
+
+    <label>Defender Type:
+      <select id="defender">
+        <option value="taller">Taller Defender</option>
+        <option value="shorter">Shorter Defender</option>
+        <option value="slower">Slower Defender</option>
+        <option value="quicker">Quicker Defender</option>
+      </select>
+    </label>
+
+    <label>Consistency (0–100):
+      <input type="number" id="consistency" min="0" max="100" value="50">
+    </label>
+
+    <button onclick="analyze()">Analyze</button>
+  </div>
+
+  <div class="section">
+    <h2>Output</h2>
+    <pre id="output">Results will appear here...</pre>
+  </div>
+
+  <div class="section">
+    <h2>Rule Editor</h2>
+    <p>Add new rules that link inputs → outputs.</p>
+    <label>Rule Key:
+      <input id="ruleKey" placeholder="e.g., stepback_inconsistent_release_taller">
+    </label>
+    <label>Diagnosis:
+      <textarea id="ruleDiagnosis"></textarea>
+    </label>
+    <label>Fix:
+      <textarea id="ruleFix"></textarea>
+    </label>
+    <label>Progression:
+      <textarea id="ruleProgression"></textarea>
+    </label>
+    <label>Playbook:
+      <textarea id="rulePlaybook"></textarea>
+    </label>
+    <label>Metrics:
+      <textarea id="ruleMetrics"></textarea>
+    </label>
+    <button onclick="addRule()">Add Rule</button>
+  </div>
+
+  <div class="section">
+    <h2>Data Management</h2>
+    <button onclick="saveData()">Save (Local)</button>
+    <button onclick="loadData()">Load (Local)</button>
+    <button onclick="exportData()">Export JSON</button>
+    <input type="file" id="importFile" onchange="importData(event)">
+  </div>
+
+  <script>
+    // Initial decision-tree data
+    let decisionTree = {
+      rules: {
+        "stepback_inconsistent_release_taller": {
+          diagnosis: "Rhythm tied only to tough shots; imbalance in open reps.",
+          fix: "Practice mini step-backs into balanced 1-dribble pull-ups.",
+          progression: "Add game-speed reps with choice reads (step-back vs. simple pull-up).",
+          playbook: "Thrives vs. taller defenders in isolation. Avoid forcing when wide open.",
+          metrics: "Track FG% step-back vs. pull-up. Aim for 70% rhythm reps."
+        }
+      }
+    };
+
+    function analyze() {
+      const archetype = document.getElementById("archetype").value;
+      const weakness = document.getElementById("weakness").value;
+      const shot = document.getElementById("shot_type").value;
+      const defender = document.getElementById("defender").value;
+      const consistency = parseInt(document.getElementById("consistency").value);
+
+      const key = `${shot}_${weakness}_${defender}`;
+      const rule = decisionTree.rules[key];
+
+      let output = `Archetype: ${archetype}\nWeakness: ${weakness}\nShot: ${shot}\nDefender: ${defender}\nConsistency: ${consistency}\n\n`;
+
+      if (rule) {
+        output += `Diagnosis: ${rule.diagnosis}\nFix: ${rule.fix}\nProgression: ${rule.progression}\nPlaybook: ${rule.playbook}\nMetrics: ${rule.metrics}`;
+      } else {
+        output += "No exact rule found. Add one in the editor!";
+      }
+
+      document.getElementById("output").innerText = output;
+    }
+
+    function addRule() {
+      const key = document.getElementById("ruleKey").value;
+      decisionTree.rules[key] = {
+        diagnosis: document.getElementById("ruleDiagnosis").value,
+        fix: document.getElementById("ruleFix").value,
+        progression: document.getElementById("ruleProgression").value,
+        playbook: document.getElementById("rulePlaybook").value,
+        metrics: document.getElementById("ruleMetrics").value
+      };
+      alert("Rule added!");
+    }
+
+    function saveData() {
+      localStorage.setItem("decisionTree", JSON.stringify(decisionTree));
+      alert("Data saved locally.");
+    }
+
+    function loadData() {
+      const saved = localStorage.getItem("decisionTree");
+      if (saved) {
+        decisionTree = JSON.parse(saved);
+        alert("Data loaded.");
+      } else {
+        alert("No saved data found.");
+      }
+    }
+
+    function exportData() {
+      const blob = new Blob([JSON.stringify(decisionTree, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "decisionTree.json";
+      a.click();
+    }
+
+    function importData(event) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        decisionTree = JSON.parse(e.target.result);
+        alert("Data imported.");
+      };
+      reader.readAsText(file);
+    }
+  </script>
+</body>
+</html>
